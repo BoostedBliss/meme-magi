@@ -1,0 +1,6 @@
+{
+  "name": "AI Meme Generator",
+  "description": "Generate hilarious memes with AI Magic Captions, trending templates, custom image upload, and Gemini image understanding.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
