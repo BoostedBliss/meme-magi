@@ -29,6 +29,7 @@ export default function App() {
     format: 'classic',
     textAlign: 'center',
     shadow: true,
+      borderRadius: 0,
     filters: DEFAULT_IMAGE_FILTERS,
   });
 
@@ -202,6 +203,7 @@ export default function App() {
       format: 'classic',
       textAlign: 'center',
       shadow: true,
+      borderRadius: 0,
       filters: DEFAULT_IMAGE_FILTERS,
     });
   };

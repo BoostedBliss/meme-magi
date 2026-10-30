@@ -58,6 +58,7 @@ export interface TextStyleConfig {
   format: MemeFormat;
   textAlign: 'center' | 'left' | 'right';
   shadow: boolean;
+  borderRadius: number;
   filters: ImageFilterConfig;
 }
 
@@ -68,4 +69,5 @@ export interface StickerItem {
   yPercent: number; // 0 - 100
   size: number;
   rotation: number;
+  opacity: number; // 0 - 100
 }
