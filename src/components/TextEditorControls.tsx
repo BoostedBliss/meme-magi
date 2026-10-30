@@ -71,8 +71,17 @@ export const TextEditorControls: React.FC<TextEditorControlsProps> = ({
       yPercent: 50 + (Math.random() * 20 - 10),
       size: 50,
       rotation: Math.floor(Math.random() * 20 - 10),
+      opacity: 100,
     };
     setStickers((prev) => [...prev, newSticker]);
+  };
+
+  const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
+
+  const updateSticker = (id: string, updates: Partial<StickerItem>) => {
+    setStickers((prev) =>
+      prev.map((stk) => (stk.id === id ? { ...stk, ...updates } : stk))
+    );
   };
 
   const removeSticker = (id: string) => {
@@ -308,37 +317,76 @@ export const TextEditorControls: React.FC<TextEditorControlsProps> = ({
         </div>
 
         {/* Color Presets & Uppercase Toggle */}
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-400 w-12">Text:</span>
+              {colorPresets.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setStyle((prev) => ({ ...prev, textColor: c.value }))}
+                  style={{ backgroundColor: c.value }}
+                  title={c.label}
+                  className={`w-5 h-5 rounded-full border transition-transform cursor-pointer ${
+                    style.textColor === c.value
+                      ? 'border-indigo-400 scale-110 ring-2 ring-indigo-400/40'
+                      : 'border-slate-700 hover:scale-105'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+              <input
+                id="uppercase-toggle"
+                type="checkbox"
+                checked={style.isUppercase}
+                onChange={(e) =>
+                  setStyle((prev) => ({ ...prev, isUppercase: e.target.checked }))
+                }
+                className="rounded accent-indigo-500 bg-slate-950 border-slate-700"
+              />
+              <span className="font-mono text-[11px]">ALL-CAPS</span>
+            </label>
+          </div>
+
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-slate-400">Color:</span>
+            <span className="text-[11px] text-slate-400 w-12">Outline:</span>
             {colorPresets.map((c) => (
               <button
-                key={c.value}
+                key={`stroke-${c.value}`}
                 type="button"
-                onClick={() => setStyle((prev) => ({ ...prev, textColor: c.value }))}
+                onClick={() => setStyle((prev) => ({ ...prev, strokeColor: c.value }))}
                 style={{ backgroundColor: c.value }}
                 title={c.label}
                 className={`w-5 h-5 rounded-full border transition-transform cursor-pointer ${
-                  style.textColor === c.value
+                  style.strokeColor === c.value
                     ? 'border-indigo-400 scale-110 ring-2 ring-indigo-400/40'
                     : 'border-slate-700 hover:scale-105'
                 }`}
               />
             ))}
           </div>
+        </div>
 
-          <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-            <input
-              id="uppercase-toggle"
-              type="checkbox"
-              checked={style.isUppercase}
-              onChange={(e) =>
-                setStyle((prev) => ({ ...prev, isUppercase: e.target.checked }))
-              }
-              className="rounded accent-indigo-500 bg-slate-950 border-slate-700"
-            />
-            <span className="font-mono text-[11px]">ALL-CAPS</span>
-          </label>
+        {/* Border Radius Slider */}
+        <div className="pt-2 border-t border-white/5">
+          <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+            <span>Border Radius</span>
+            <span className="font-mono text-indigo-400">{style.borderRadius}px</span>
+          </div>
+          <input
+            id="border-radius-slider"
+            type="range"
+            min="0"
+            max="100"
+            value={style.borderRadius}
+            onChange={(e) =>
+              setStyle((prev) => ({ ...prev, borderRadius: Number(e.target.value) }))
+            }
+            className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+          />
         </div>
       </div>
 
@@ -377,20 +425,78 @@ export const TextEditorControls: React.FC<TextEditorControlsProps> = ({
         {stickers.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/5">
             {stickers.map((stk) => (
-              <span
+              <button
                 key={stk.id}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-xs text-slate-200 border border-white/5"
+                type="button"
+                onClick={() => setActiveStickerId(activeStickerId === stk.id ? null : stk.id)}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border transition-colors cursor-pointer ${
+                  activeStickerId === stk.id
+                    ? 'bg-indigo-500/20 text-indigo-200 border-indigo-500/50'
+                    : 'bg-slate-800 text-slate-200 border-white/5 hover:bg-slate-700'
+                }`}
               >
                 <span>{stk.symbol}</span>
-                <button
-                  type="button"
-                  onClick={() => removeSticker(stk.id)}
-                  className="text-slate-400 hover:text-red-400 cursor-pointer"
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSticker(stk.id);
+                  }}
+                  className="text-slate-400 hover:text-red-400 p-0.5"
                 >
                   <Trash2 className="w-3 h-3" />
-                </button>
-              </span>
+                </span>
+              </button>
             ))}
+          </div>
+        )}
+
+        {/* Selected Sticker Adjustments */}
+        {activeStickerId && stickers.find((s) => s.id === activeStickerId) && (
+          <div className="pt-2 border-t border-white/5 space-y-2">
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Size</span>
+              <span className="font-mono text-indigo-400">
+                {stickers.find((s) => s.id === activeStickerId)?.size}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="10"
+              max="200"
+              value={stickers.find((s) => s.id === activeStickerId)?.size}
+              onChange={(e) => updateSticker(activeStickerId, { size: Number(e.target.value) })}
+              className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+            />
+
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Rotation</span>
+              <span className="font-mono text-indigo-400">
+                {stickers.find((s) => s.id === activeStickerId)?.rotation}°
+              </span>
+            </div>
+            <input
+              type="range"
+              min="-180"
+              max="180"
+              value={stickers.find((s) => s.id === activeStickerId)?.rotation}
+              onChange={(e) => updateSticker(activeStickerId, { rotation: Number(e.target.value) })}
+              className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+            />
+
+            <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Opacity</span>
+              <span className="font-mono text-indigo-400">
+                {stickers.find((s) => s.id === activeStickerId)?.opacity}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={stickers.find((s) => s.id === activeStickerId)?.opacity}
+              onChange={(e) => updateSticker(activeStickerId, { opacity: Number(e.target.value) })}
+              className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+            />
           </div>
         )}
       </div>

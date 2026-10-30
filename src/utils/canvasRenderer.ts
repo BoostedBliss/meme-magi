@@ -226,6 +226,22 @@ export function drawMemeOnCanvas({
   canvas.height = canvasHeight;
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  ctx.save();
+
+  if (style.borderRadius > 0) {
+    ctx.beginPath();
+    ctx.moveTo(style.borderRadius, 0);
+    ctx.lineTo(canvasWidth - style.borderRadius, 0);
+    ctx.quadraticCurveTo(canvasWidth, 0, canvasWidth, style.borderRadius);
+    ctx.lineTo(canvasWidth, canvasHeight - style.borderRadius);
+    ctx.quadraticCurveTo(canvasWidth, canvasHeight, canvasWidth - style.borderRadius, canvasHeight);
+    ctx.lineTo(style.borderRadius, canvasHeight);
+    ctx.quadraticCurveTo(0, canvasHeight, 0, canvasHeight - style.borderRadius);
+    ctx.lineTo(0, style.borderRadius);
+    ctx.quadraticCurveTo(0, 0, style.borderRadius, 0);
+    ctx.closePath();
+    ctx.clip();
+  }
 
   // 1. Draw Modern Banner background if enabled
   if (bannerHeight > 0) {
@@ -325,12 +341,14 @@ export function drawMemeOnCanvas({
 
     ctx.translate(posX, posY);
     ctx.rotate((sticker.rotation * Math.PI) / 180);
+    ctx.globalAlpha = sticker.opacity !== undefined ? sticker.opacity / 100 : 1;
     ctx.font = `${stickerPx}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(sticker.symbol, 0, 0);
     ctx.restore();
   });
+  ctx.restore();
 }
 
 export function exportCanvasAsDataUrl(
